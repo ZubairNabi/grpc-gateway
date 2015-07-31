@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gengo/grpc-gateway/internal"
+	"github.com/ZubairNabi/grpc-gateway/internal"
 )
 
 const (

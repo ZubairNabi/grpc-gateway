@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gengo/grpc-gateway/internal"
+	"github.com/ZubairNabi/grpc-gateway/internal"
 	"github.com/golang/glog"
 )
 

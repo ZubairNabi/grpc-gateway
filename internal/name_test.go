@@ -3,7 +3,7 @@ package internal_test
 import (
 	"testing"
 
-	"github.com/gengo/grpc-gateway/internal"
+	"github.com/ZubairNabi/grpc-gateway/internal"
 )
 
 func TestPascalToSnake(t *testing.T) {

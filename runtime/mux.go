@@ -38,15 +38,17 @@ func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	components := strings.Split(path[1:], "/")
-	l := len(components)
 	var verb string
-	if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	} else if idx > 0 {
-		c := components[l-1]
-		verb, components[l-1] = c[:idx], c[idx+1:]
-	}
+	//Zubair: Removing this altogether as we allow clients to send colons in their keys
+//	l := len(components)
+//	if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
+//		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+//		return
+//	} else if idx > 0 {
+//		c := components[l-1]
+//		verb, components[l-1] = c[:idx], c[idx+1:]
+//	}
+	glog.V(2).Infof("verb: %v, componenets: %v", verb, components)
 
 	if override := r.Header.Get("X-HTTP-Method-Override"); override != "" && isPathLengthFallback(r) {
 		r.Method = strings.ToUpper(override)
