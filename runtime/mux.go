@@ -15,12 +15,23 @@ type HandlerFunc func(w http.ResponseWriter, r *http.Request, pathParams map[str
 type ServeMux struct {
 	// handlers maps HTTP method to a list of handlers.
 	handlers map[string][]handler
+	colonPathMapping bool
 }
 
 // NewServeMux returns a new MuxHandler whose internal mapping is empty.
 func NewServeMux() *ServeMux {
 	return &ServeMux{
 		handlers: make(map[string][]handler),
+		colonPathMapping: true,
+	}
+}
+
+// NewServeMux returns a new MuxHandler whose internal mapping is empty and it 
+// does not map paths with colons to field names.
+func NewServeMuxNoMapping() *ServeMux {
+	return &ServeMux{
+		handlers: make(map[string][]handler),
+		colonPathMapping: false,
 	}
 }
 
@@ -39,16 +50,19 @@ func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	components := strings.Split(path[1:], "/")
 	var verb string
-	//Zubair: Removing this altogether as we allow clients to send colons in their keys
-//	l := len(components)
-//	if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
-//		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-//		return
-//	} else if idx > 0 {
-//		c := components[l-1]
-//		verb, components[l-1] = c[:idx], c[idx+1:]
-//	}
-	glog.V(2).Infof("verb: %v, componenets: %v", verb, components)
+	
+	//Zubair: Making this configurable to allow paths with colons.
+	if (s.colonPathMapping == true) {
+		l := len(components)
+		if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		} else if idx > 0 {
+			c := components[l-1]
+			verb, components[l-1] = c[:idx], c[idx+1:]
+		}
+	}
+	glog.V(2).Infof("verb: %v, components: %v", verb, components)
 
 	if override := r.Header.Get("X-HTTP-Method-Override"); override != "" && isPathLengthFallback(r) {
 		r.Method = strings.ToUpper(override)
