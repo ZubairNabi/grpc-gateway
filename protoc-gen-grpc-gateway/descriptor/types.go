@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gengo/grpc-gateway/internal"
+	"github.com/gengo/grpc-gateway/utilities"
 	"github.com/gengo/grpc-gateway/protoc-gen-grpc-gateway/httprule"
 	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
@@ -196,6 +196,14 @@ func (p FieldPath) String() string {
 	return strings.Join(components, ".")
 }
 
+// IsNestedProto3 indicates whether the FieldPath is a nested Proto3 path.
+func (p FieldPath) IsNestedProto3() bool {
+	if len(p) > 1 && !p[0].Target.Message.File.proto2() {
+		return true
+	}
+	return false
+}
+
 // RHS is a right-hand-side expression in go to be used to assign a value to the target field.
 // It starts with "msgExpr", which is the go expression of the method request object.
 func (p FieldPath) RHS(msgExpr string) string {
@@ -225,15 +233,15 @@ type FieldPathComponent struct {
 
 // RHS returns a right-hand-side expression in go for this field.
 func (c FieldPathComponent) RHS() string {
-	return internal.PascalFromSnake(c.Name)
+	return utilities.PascalFromSnake(c.Name)
 }
 
 // LHS returns a left-hand-side expression in go for this field.
 func (c FieldPathComponent) LHS() string {
 	if c.Target.Message.File.proto2() {
-		return fmt.Sprintf("Get%s()", internal.PascalFromSnake(c.Name))
+		return fmt.Sprintf("Get%s()", utilities.PascalFromSnake(c.Name))
 	}
-	return internal.PascalFromSnake(c.Name)
+	return utilities.PascalFromSnake(c.Name)
 }
 
 var (

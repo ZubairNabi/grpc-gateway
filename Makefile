@@ -1,11 +1,16 @@
+# This is a Makefile which maintains files automatically generated but to be
+# shipped together with other files.
+# You don't have to rebuild these targets by yourself unless you develop
+# grpc-gateway itself.
+
 PKG=github.com/gengo/grpc-gateway
 GO_PLUGIN=bin/protoc-gen-go
 GO_PLUGIN_PKG=github.com/golang/protobuf/protoc-gen-go
 GATEWAY_PLUGIN=bin/protoc-gen-grpc-gateway
 GATEWAY_PLUGIN_PKG=$(PKG)/protoc-gen-grpc-gateway
-GATEWAY_PLUGIN_SRC= internal/doc.go \
-		    internal/name.go \
-		    internal/pattern.go \
+GATEWAY_PLUGIN_SRC= utilities/doc.go \
+		    utilities/name.go \
+		    utilities/pattern.go \
 		    protoc-gen-grpc-gateway/descriptor/registry.go \
 		    protoc-gen-grpc-gateway/descriptor/services.go \
 		    protoc-gen-grpc-gateway/descriptor/types.go \
@@ -21,8 +26,9 @@ OPTIONS_PROTO=$(GOOGLEAPIS_DIR)/google/api/annotations.proto $(GOOGLEAPIS_DIR)/g
 OPTIONS_GO=$(OPTIONS_PROTO:.proto=.pb.go)
 
 PKGMAP=Mgoogle/protobuf/descriptor.proto=$(GO_PLUGIN_PKG)/descriptor,Mexamples/sub/message.proto=$(PKG)/examples/sub
-EXAMPLES=examples/echo_service.proto \
-	 examples/a_bit_of_everything.proto
+EXAMPLES=examples/examplepb/echo_service.proto \
+	 examples/examplepb/a_bit_of_everything.proto \
+	 examples/examplepb/flow_combination.proto
 EXAMPLE_SVCSRCS=$(EXAMPLES:.proto=.pb.go)
 EXAMPLE_GWSRCS=$(EXAMPLES:.proto=.pb.gw.go)
 EXAMPLE_DEPS=examples/sub/message.proto
@@ -55,9 +61,11 @@ test: examples
 	go test $(PKG)/...
 
 clean distclean:
-realclean:
+	rm -f $(GATEWAY_PLUGIN)
+realclean: distclean
 	rm -f $(OPTIONS_GO)
 	rm -f $(EXAMPLE_SVCSRCS) $(EXAMPLE_DEPSRCS)
 	rm -f $(EXAMPLE_GWSRCS)
+	rm -f $(GO_PLUGIN)
 
 .PHONY: generate examples test clean distclean realclean

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/gengo/grpc-gateway/internal"
 	"github.com/gengo/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
+	"github.com/gengo/grpc-gateway/utilities"
 	"github.com/golang/glog"
 )
 
@@ -49,12 +49,12 @@ func (b binding) QueryParamFilter() queryParamFilter {
 	for _, p := range b.PathParams {
 		seqs = append(seqs, strings.Split(p.FieldPath.String(), "."))
 	}
-	return queryParamFilter{internal.NewDoubleArray(seqs)}
+	return queryParamFilter{utilities.NewDoubleArray(seqs)}
 }
 
-// queryParamFilter is a wrapper of internal.DoubleArray which provides String() to output DoubleArray.Encoding in a stable and predictable format.
+// queryParamFilter is a wrapper of utilities.DoubleArray which provides String() to output DoubleArray.Encoding in a stable and predictable format.
 type queryParamFilter struct {
-	*internal.DoubleArray
+	*utilities.DoubleArray
 }
 
 func (f queryParamFilter) String() string {
@@ -63,7 +63,7 @@ func (f queryParamFilter) String() string {
 		encodings[enc] = fmt.Sprintf("%q: %d", str, enc)
 	}
 	e := strings.Join(encodings, ", ")
-	return fmt.Sprintf("&internal.DoubleArray{Encoding: map[string]int{%s}, Base: %#v, Check: %#v}", e, f.Base, f.Check)
+	return fmt.Sprintf("&utilities.DoubleArray{Encoding: map[string]int{%s}, Base: %#v, Check: %#v}", e, f.Base, f.Check)
 }
 
 func applyTemplate(p param) (string, error) {
@@ -114,7 +114,7 @@ var _ codes.Code
 var _ io.Reader
 var _ = runtime.String
 var _ = json.Marshal
-var _ = internal.PascalFromSnake
+var _ = utilities.PascalFromSnake
 `))
 
 	handlerTemplate = template.Must(template.New("handler").Parse(`
@@ -129,7 +129,7 @@ var _ = internal.PascalFromSnake
 {{if .Method.GetServerStreaming}}
 func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx context.Context, client {{.Method.Service.GetName}}Client, req *http.Request, pathParams map[string]string) ({{.Method.Service.GetName}}_{{.Method.GetName}}Client, error)
 {{else}}
-func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx context.Context, client {{.Method.Service.GetName}}Client, req *http.Request, pathParams map[string]string) (msg proto.Message, err error)
+func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx context.Context, client {{.Method.Service.GetName}}Client, req *http.Request, pathParams map[string]string) (proto.Message, error)
 {{end}}`, "\n", "", -1)))
 
 	_ = template.Must(handlerTemplate.New("client-streaming-request-func").Parse(`
@@ -176,19 +176,27 @@ var (
 {{template "request-func-signature" .}} {
 	var protoReq {{.Method.RequestType.GoType .Method.Service.File.GoPkg.Path}}
 {{if .Body}}
-	if err = json.NewDecoder(req.Body).Decode(&{{.Body.RHS "protoReq"}}); err != nil {
+	if err := json.NewDecoder(req.Body).Decode(&{{.Body.RHS "protoReq"}}); err != nil {
 		return nil, grpc.Errorf(codes.InvalidArgument, "%v", err)
 	}
 {{end}}
 {{if .PathParams}}
-	var val string
-	var ok bool
+	var (
+		val string
+		ok bool
+		err error
+		_ = err
+	)
 	{{range $param := .PathParams}}
 	val, ok = pathParams[{{$param | printf "%q"}}]
 	if !ok {
 		return nil, grpc.Errorf(codes.InvalidArgument, "missing parameter %s", {{$param | printf "%q"}})
 	}
+{{if $param.IsNestedProto3 }}
+	err = runtime.PopulateFieldFromPath(&protoReq, {{$param | printf "%q"}}, val)
+{{else}}
 	{{$param.RHS "protoReq"}}, err = {{$param.ConvertFuncExpr}}(val)
+{{end}}
 	if err != nil {
 		return nil, err
 	}

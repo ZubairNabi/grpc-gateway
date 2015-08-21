@@ -6,27 +6,34 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/ZubairNabi/grpc-gateway/internal"
+	"github.com/gengo/grpc-gateway/utilities"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 )
 
 // PopulateQueryParameters populates "values" into "msg".
 // A value is ignored if its key starts with one of the elements in "filters".
-func PopulateQueryParameters(msg proto.Message, values url.Values, filter *internal.DoubleArray) error {
+func PopulateQueryParameters(msg proto.Message, values url.Values, filter *utilities.DoubleArray) error {
 	for key, values := range values {
 		fieldPath := strings.Split(key, ".")
 		if filter.HasCommonPrefix(fieldPath) {
 			continue
 		}
-		if err := populateQueryParameter(msg, fieldPath, values); err != nil {
+		if err := populateFieldValueFromPath(msg, fieldPath, values); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func populateQueryParameter(msg proto.Message, fieldPath []string, values []string) error {
+// PopulateFieldFromPath sets a value in a nested Protobuf structure.
+// It instantiates missing protobuf fields as it goes.
+func PopulateFieldFromPath(msg proto.Message, fieldPathString string, value string) error {
+	fieldPath := strings.Split(fieldPathString, ".")
+	return populateFieldValueFromPath(msg, fieldPath, []string{value})
+}
+
+func populateFieldValueFromPath(msg proto.Message, fieldPath []string, values []string) error {
 	m := reflect.ValueOf(msg)
 	if m.Kind() != reflect.Ptr {
 		return fmt.Errorf("unexpected type %T: %v", msg, msg)
@@ -37,7 +44,7 @@ func populateQueryParameter(msg proto.Message, fieldPath []string, values []stri
 		if !isLast && m.Kind() != reflect.Struct {
 			return fmt.Errorf("non-aggregate type in the mid of path: %s", strings.Join(fieldPath, "."))
 		}
-		f := m.FieldByName(internal.PascalFromSnake(fieldName))
+		f := m.FieldByName(utilities.PascalFromSnake(fieldName))
 		if !f.IsValid() {
 			glog.Warningf("field not found in %T: %s", msg, strings.Join(fieldPath, "."))
 			return nil

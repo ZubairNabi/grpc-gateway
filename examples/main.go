@@ -4,7 +4,8 @@ import (
 	"flag"
 	"net/http"
 
-	"github.com/ZubairNabi/grpc-gateway/runtime"
+	"github.com/gengo/grpc-gateway/examples/examplepb"
+	"github.com/gengo/grpc-gateway/runtime"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 )
@@ -12,6 +13,7 @@ import (
 var (
 	echoEndpoint = flag.String("echo_endpoint", "localhost:9090", "endpoint of EchoService")
 	abeEndpoint  = flag.String("more_endpoint", "localhost:9090", "endpoint of ABitOfEverythingService")
+	flowEndpoint = flag.String("flow_endpoint", "localhost:9090", "endpoint of FlowCombination")
 )
 
 func Run() error {
@@ -20,11 +22,15 @@ func Run() error {
 	defer cancel()
 
 	mux := runtime.NewServeMux()
-	err := RegisterEchoServiceHandlerFromEndpoint(ctx, mux, *echoEndpoint)
+	err := examplepb.RegisterEchoServiceHandlerFromEndpoint(ctx, mux, *echoEndpoint)
 	if err != nil {
 		return err
 	}
-	err = RegisterABitOfEverythingServiceHandlerFromEndpoint(ctx, mux, *abeEndpoint)
+	err = examplepb.RegisterABitOfEverythingServiceHandlerFromEndpoint(ctx, mux, *abeEndpoint)
+	if err != nil {
+		return err
+	}
+	err = examplepb.RegisterFlowCombinationHandlerFromEndpoint(ctx, mux, *flowEndpoint)
 	if err != nil {
 		return err
 	}
