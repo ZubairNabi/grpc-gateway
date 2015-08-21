@@ -3,7 +3,7 @@ package utilities_test
 import (
 	"testing"
 
-	"github.com/gengo/grpc-gateway/utilities"
+	"github.com/ZubairNabi/grpc-gateway/utilities"
 )
 
 func TestPascalToSnake(t *testing.T) {

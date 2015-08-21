@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/gengo/grpc-gateway/utilities"
-	"github.com/gengo/grpc-gateway/runtime"
+	"github.com/ZubairNabi/grpc-gateway/utilities"
+	"github.com/ZubairNabi/grpc-gateway/runtime"
 	"github.com/golang/protobuf/proto"
 )
 

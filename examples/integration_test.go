@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	gw "github.com/gengo/grpc-gateway/examples/examplepb"
-	server "github.com/gengo/grpc-gateway/examples/server"
-	sub "github.com/gengo/grpc-gateway/examples/sub"
+	gw "github.com/ZubairNabi/grpc-gateway/examples/examplepb"
+	server "github.com/ZubairNabi/grpc-gateway/examples/server"
+	sub "github.com/ZubairNabi/grpc-gateway/examples/sub"
 )
 
 func TestIntegration(t *testing.T) {

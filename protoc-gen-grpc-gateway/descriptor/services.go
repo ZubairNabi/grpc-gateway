@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gengo/grpc-gateway/protoc-gen-grpc-gateway/httprule"
-	options "github.com/gengo/grpc-gateway/third_party/googleapis/google/api"
+	"github.com/ZubairNabi/grpc-gateway/protoc-gen-grpc-gateway/httprule"
+	options "github.com/ZubairNabi/grpc-gateway/third_party/googleapis/google/api"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
